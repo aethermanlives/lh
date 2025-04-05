@@ -1,0 +1,109 @@
+// LaunchHorseForm – embeddable Next.js page (host on Vercel)
+
+'use client';
+
+import { useState } from 'react';
+
+export default function LaunchHorseForm() {
+  const [email, setEmail] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [country, setCountry] = useState('Other');
+  const [companyType, setCompanyType] = useState('LLC');
+  const [resellerCert, setResellerCert] = useState(false);
+  const [einSpeed, setEINSpeed] = useState('standard');
+  const [notes, setNotes] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Determine Stripe checkout URL based on selections
+    let stripeURL = 'https://buy.stripe.com/test_default';
+
+    if (einSpeed === 'expedited' && resellerCert) {
+      stripeURL = 'https://buy.stripe.com/test_expedited_reseller';
+    } else if (einSpeed === 'expedited') {
+      stripeURL = 'https://buy.stripe.com/test_expedited';
+    } else if (resellerCert) {
+      stripeURL = 'https://buy.stripe.com/test_standard_reseller';
+    } else {
+      stripeURL = 'https://buy.stripe.com/test_standard';
+    }
+
+    // Optional: Send data to webhook/Airtable/Supabase here
+    // fetch('/api/storeSubmission', { method: 'POST', body: JSON.stringify({ email, companyName, ... }) })
+
+    window.location.href = stripeURL;
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 space-y-4 bg-white rounded shadow">
+      <label className="block">
+        <span className="block font-medium mb-1">What country do you reside in?</span>
+        <select value={country} onChange={(e) => setCountry(e.target.value)} className="w-full border p-2 rounded">
+          <option>China</option>
+          <option>United Kingdom</option>
+          <option>Australia</option>
+          <option>Germany</option>
+          <option>India</option>
+          <option>Brazil</option>
+          <option>Other</option>
+        </select>
+      </label>
+
+      <label className="block">
+        <span className="block font-medium mb-1">Email Address</span>
+        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border p-2 rounded" />
+      </label>
+
+      <label className="block">
+        <span className="block font-medium mb-1">Company Name (desired)</span>
+        <input type="text" required value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full border p-2 rounded" />
+      </label>
+
+      <label className="block">
+        <span className="block font-medium mb-1">Company Type</span>
+        <select value={companyType} onChange={(e) => setCompanyType(e.target.value)} className="w-full border p-2 rounded">
+          <option value="LLC">LLC</option>
+          <option value="C-Corp">C-Corp</option>
+        </select>
+      </label>
+
+      <label className="block">
+        <span className="block font-medium mb-1">Planning to sell goods?</span>
+        <div className="space-y-2">
+          <label className="flex items-center">
+            <input type="radio" checked={resellerCert === true} onChange={() => setResellerCert(true)} className="mr-2" />
+            Yes — Include Reseller Certificate & Sales Tax Registration (+$199)
+          </label>
+          <label className="flex items-center">
+            <input type="radio" checked={resellerCert === false} onChange={() => setResellerCert(false)} className="mr-2" />
+            No, Thanks
+          </label>
+        </div>
+      </label>
+
+      <label className="block">
+        <span className="block font-medium mb-1">EIN Processing Speed</span>
+        <div className="space-y-2">
+          <label className="flex items-center">
+            <input type="radio" value="expedited" checked={einSpeed === 'expedited'} onChange={() => setEINSpeed('expedited')} className="mr-2" />
+            Expedited (+$300)
+          </label>
+          <label className="flex items-center">
+            <input type="radio" value="standard" checked={einSpeed === 'standard'} onChange={() => setEINSpeed('standard')} className="mr-2" />
+            Standard (+$49)
+          </label>
+        </div>
+      </label>
+
+      <label className="block">
+        <span className="block font-medium mb-1">Anything else we should know?</span>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full border p-2 rounded" rows={3} />
+      </label>
+
+      <button type="submit" className="w-full bg-black text-white p-3 rounded hover:bg-gray-800">
+        Continue to Payment
+      </button>
+    </form>
+  );
+}
